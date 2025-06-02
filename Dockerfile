@@ -1,4 +1,4 @@
-FROM python:3.14.0b2-alpine3.21
+FROM python:3.11-bookworm
 
 WORKDIR /app
 
@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
