@@ -1,9 +1,21 @@
+from typing import Optional
 from uuid import UUID
-from typing import List
 from pydantic import BaseModel
-from modules.menu.domain import PreOrderItem
+from datetime import datetime
+from enum import Enum
 
+
+class ReservationStatus(Enum):
+    PENDING = "PENDING"
+    CONFIRMED = "CONFIRMED"
+    CANCELLED = "CANCELLED"
 
 class Reservation(BaseModel):
     uuid: UUID
-    pre_orders: List[PreOrderItem] = []
+    user_id: UUID
+    table_id: UUID
+    start_time: datetime
+    end_time: datetime
+    num_people: int
+    special_instructions: Optional[str]
+    status: ReservationStatus

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from sqlmodel import SQLModel
 from modules.core.db_connection import engine
 from modules.auth.infrastructure.auth_controller import router as auth_router
+from modules.menu.infrastructure.menu_controller import router as menu_router
 
 SQLModel.metadata.create_all(engine)
 
@@ -23,3 +24,4 @@ async def test_db():
         return {"error": str(e)}
 
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
+app.include_router(menu_router, prefix="/menu", tags=["Menu"])
