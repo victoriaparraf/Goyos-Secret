@@ -3,8 +3,8 @@ from typing import Optional, List
 
 from modules.menu.domain.menu_item import MenuItem
 from modules.menu.domain.menu_repository_interface import MenuRepositoryInterface   
-from modules.menu.infrastructure.menu_item_db_model import MenuItemDB
-from modules.menu.infrastructure.pre_order_item_db_model import PreOrderItemDB
+from modules.menu.infrastructure.menu_item_db_model import MenuItemDB, to_db, to_domain
+from modules.menu.infrastructure.pre_order_item_db_model import PreOrderItemDB, to_db as to_db_pre_order, to_domain as to_domain_pre_order
 from modules.menu.domain.pre_order_item import PreOrderItem
 
 
@@ -28,16 +28,22 @@ class MenuRepository(MenuRepositoryInterface):
         return result
 
     def create_pre_order_items(self, items: List[PreOrderItem]) -> List[PreOrderItem]:
+        db_items = []
         for item in items:
-            self.db.add(item)
+            db_item = to_db_pre_order(item)
+            self.db.add(db_item)
+            db_items.append(db_item)
         self.db.commit()
-        return items
+        for db_item in db_items:
+            self.db.refresh(db_item)
+        return [to_domain_pre_order(db_item) for db_item in db_items]
 
     def create_menu_item(self, menu_item: MenuItem) -> MenuItem:
-        self.db.add(menu_item)
+        menu_item_db = to_db(menu_item)
+        self.db.add(menu_item_db)
         self.db.commit()
-        self.db.refresh(menu_item)
-        return menu_item
+        self.db.refresh(menu_item_db)
+        return to_domain(menu_item_db)
 
     def modify_menu_item(self, menu_item: MenuItem) -> MenuItem:
         self.db.commit()

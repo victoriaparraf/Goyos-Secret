@@ -10,8 +10,7 @@ from typing import List
 router = APIRouter()
 
 def get_menu_repository(db: Session = Depends(get_db)) -> MenuRepositoryInterface:
-    repository = MenuRepository(db)
-    return MenuRepositoryInterface(repository)
+    return MenuRepository(db)
 
 # Caso de uso: Obtener menu item por categoría
 @router.get("/menu-item/{category}")
