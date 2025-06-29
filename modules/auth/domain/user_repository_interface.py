@@ -22,3 +22,4 @@ class UserRepositoryInterface(ABC):
     def get_by_id(self, user_uuid: str) -> Optional[User]:
         """Obtiene un usuario por su ID."""
         pass
+    
