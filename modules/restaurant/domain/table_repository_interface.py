@@ -23,6 +23,11 @@ class ITableRepository(ABC):
     def save(self, table: Table) -> None:
         """Guardar una mesa en la base de datos."""
         pass
+    
+    @abstractmethod
+    def modify(self, table: Table) -> Table:
+        """Modificar una mesa existente."""
+        pass
 
     @abstractmethod
     def delete(self, table_id: UUID) -> None:

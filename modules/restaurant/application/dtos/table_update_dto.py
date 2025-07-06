@@ -1,5 +1,7 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class UpdateTableDTO(BaseModel):
-    capacity: int
-    location: str
+    number: Optional[int]
+    capacity: Optional[int]
+    location: Optional[str]

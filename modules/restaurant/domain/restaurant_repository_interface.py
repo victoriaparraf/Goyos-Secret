@@ -15,7 +15,7 @@ class IRestaurantRepository(ABC):
         pass
 
     @abstractmethod
-    def save(self, restaurant: Restaurant) -> None:
+    def save(self, restaurant: Restaurant) -> Restaurant:
         """Guarda un restaurante"""
         pass
 

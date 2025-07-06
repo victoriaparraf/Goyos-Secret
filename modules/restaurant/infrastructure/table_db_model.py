@@ -1,15 +1,28 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
-from modules.core.db_connection import Base
+from sqlmodel import SQLModel, Field
+from uuid import UUID, uuid4
+from modules.restaurant.domain.table import Table
 
-class TableDBModel(Base):
-    __tablename__ = 'tables'
+class TableDBModel(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    restaurant_id: UUID = Field(foreign_key="restaurantdbmodel.id", index=True)
+    number: int
+    capacity: int
+    location: str
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
-    restaurant_id = Column(UUID(as_uuid=True), ForeignKey('restaurants.id'), nullable=False)
-    table_number = Column(Integer, nullable=False)
-    capacity = Column(Integer, nullable=False)
-    location = Column(String, nullable=False)
+def to_domain(table_db: TableDBModel) -> Table:
+    return Table(
+        id=table_db.id,
+        restaurant_id=table_db.restaurant_id,
+        number=table_db.number,
+        capacity=table_db.capacity,
+        location=table_db.location
+    )
 
-    restaurant = relationship("RestaurantDBModel")
+def to_db(table: Table) -> TableDBModel:
+    return TableDBModel(
+        id=table.id,
+        restaurant_id=table.restaurant_id,
+        number=table.number,
+        capacity=table.capacity,
+        location=table.location
+    )
