@@ -7,7 +7,7 @@ ROLE_SCOPES = {
         "admin:all", "admin:restaurants", "admin:menu", "admin:reservations", "admin:dashboard"
     ],
     "client": [
-        "client:read", "client:write"
+        "client:read", "client:write", "menu:read", "reservations:read", "reservations:write", "restaurants:read"
     ]
 }
 
