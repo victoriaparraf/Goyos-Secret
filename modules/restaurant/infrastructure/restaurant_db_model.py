@@ -11,7 +11,7 @@ class RestaurantDBModel(SQLModel, Restaurant, table=True):
 
 def to_domain(restaurat_db: RestaurantDBModel) -> Restaurant:
     return Restaurant(
-        uuid=restaurat_db.uuid,
+        id=restaurat_db.id,
         name=restaurat_db.name,
         address=restaurat_db.address,
         opening_time=restaurat_db.opening_time,
@@ -20,6 +20,7 @@ def to_domain(restaurat_db: RestaurantDBModel) -> Restaurant:
 
 def to_db(restaurant: Restaurant) -> RestaurantDBModel:
     return RestaurantDBModel(
+        id=restaurant.id,
         name=restaurant.name,
         address=restaurant.address,
         opening_time=restaurant.opening_time,

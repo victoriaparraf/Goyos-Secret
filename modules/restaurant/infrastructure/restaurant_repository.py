@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 from sqlmodel import Session, select
 from modules.restaurant.domain.restaurant import Restaurant
@@ -10,7 +10,7 @@ class RestaurantRepository(IRestaurantRepository):
         self.db = db
 
     def get_by_id(self, restaurant_id: UUID) -> Optional[Restaurant]:
-        statement = select(RestaurantDBModel).where(RestaurantDBModel.uuid == restaurant_id)
+        statement = select(RestaurantDBModel).where(RestaurantDBModel.id == restaurant_id)
         result = self.db.exec(statement).first()
         return to_domain(result) if result else None
 
@@ -19,6 +19,11 @@ class RestaurantRepository(IRestaurantRepository):
         statement = select(RestaurantDBModel).where(RestaurantDBModel.name == name)
         result = self.db.exec(statement).first()
         return result
+    
+    def get_all(self) -> List[Restaurant]:
+        statement = select(RestaurantDBModel)
+        results = self.db.exec(statement).all()
+        return [to_domain(r) for r in results]
 
     def save(self, restaurant: Restaurant) -> Restaurant:
         restaurant_db = to_db(restaurant)

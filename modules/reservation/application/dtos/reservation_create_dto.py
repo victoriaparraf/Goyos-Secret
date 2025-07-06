@@ -9,5 +9,5 @@ class ReservationCreateDto(BaseModel):
     end_time: datetime
     num_people: int 
     special_instructions: Optional[str]
-    preordered_dishes: Optional[list[UUID]] 
+    preordered_dishes: Optional[list[UUID]] = []
 
