@@ -28,7 +28,7 @@ def get_reservation_service(db: Session = Depends(get_db)) -> ReservationService
 def create_reservation(
     dto: ReservationCreateDto,
     service: ReservationService = Depends(get_reservation_service),
-    current_user = Security(get_current_user, scopes=["client:write"])
+    current_user = Security(get_current_user, scopes=["reservation:write"])
 ):
     return service.create_reservation(current_user.uuid, dto)
 
@@ -36,7 +36,7 @@ def create_reservation(
 @router.get("/", response_model=List[ReservationResponseDto])
 def list_user_reservations(
     service: ReservationService = Depends(get_reservation_service),
-    current_user = Security(get_current_user, scopes=["client:read"])
+    current_user = Security(get_current_user, scopes=["reservation:read"])
 ):
     return service.get_reservations_by_user(current_user.uuid)
 
@@ -45,7 +45,7 @@ def list_user_reservations(
 def get_reservation_by_id(
     reservation_id: UUID,
     service: ReservationService = Depends(get_reservation_service),
-    current_user = Security(get_current_user, scopes=["client:read", "admin:reservations"])
+    current_user = Security(get_current_user, scopes=["reservation:read", "admin:reservations"])
 ):
     reservation = service.get_reservation_by_id(reservation_id)
     if current_user.role == UserRole.CLIENT and reservation.user_id != current_user.uuid:
@@ -57,7 +57,7 @@ def get_reservation_by_id(
 def cancel_reservation(
     reservation_id: UUID,
     service: ReservationService = Depends(get_reservation_service),
-    current_user = Security(get_current_user, scopes=["client:write", "admin:reservations"])
+    current_user = Security(get_current_user, scopes=["reservation:write", "admin:reservations"])
 ):
     is_admin = current_user.role == UserRole.ADMIN
     service.cancel_reservation(reservation_id, current_user.uuid, is_admin)
