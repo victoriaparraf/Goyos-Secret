@@ -4,8 +4,8 @@ from fastapi import HTTPException
 from modules.restaurant.domain.restaurant_repository_interface import IRestaurantRepository
 from modules.restaurant.domain.table_repository_interface import ITableRepository
 from modules.restaurant.domain.restaurant import Restaurant
-from modules.restaurant.application.dtos.restaurant_create_dto import RestaurantCreateDto
-from modules.restaurant.application.dtos.restaurant_update_dto import RestaurantUpdateDto
+from modules.restaurant.application.dtos.restaurant_create_dto import CreateRestaurantDTO
+from modules.restaurant.application.dtos.restaurant_update_dto import UpdateRestaurantDTO
 from modules.restaurant.application.dtos.restaurant_response_dto import RestaurantResponseDto
 
 
@@ -18,7 +18,7 @@ class RestaurantService:
         self.restaurant_repo = restaurant_repo
         self.table_repo = table_repo
 
-    def create_restaurant(self, dto: RestaurantCreateDto) -> RestaurantResponseDto:
+    def create_restaurant(self, dto: CreateRestaurantDTO) -> RestaurantResponseDto:
         # Validación: nombre único
         existing = self.restaurant_repo.get_by_name(dto.name)
         if existing:
@@ -49,7 +49,7 @@ class RestaurantService:
         restaurants = self.restaurant_repo.get_all()
         return [RestaurantResponseDto(**r.model_dump()) for r in restaurants]
 
-    def update_restaurant(self, restaurant_id: UUID, dto: RestaurantUpdateDto) -> RestaurantResponseDto:
+    def update_restaurant(self, restaurant_id: UUID, dto: UpdateRestaurantDTO) -> RestaurantResponseDto:
         restaurant = self.restaurant_repo.get_by_id(restaurant_id)
         if not restaurant:
             raise HTTPException(status_code=404, detail="Restaurant not found.")
