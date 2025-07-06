@@ -5,6 +5,7 @@ from modules.auth.infrastructure.auth_controller import router as auth_router
 from modules.menu.infrastructure.menu_controller import router as menu_router
 from modules.restaurant.infrastructure.restaurant_controller import router as restaurant_router
 from modules.reservation.infrastructure.reservation_controller import router as reservation_router
+from modules.restaurant.infrastructure.table_controller import router as table_router
 
 SQLModel.metadata.create_all(engine)
 
@@ -28,4 +29,5 @@ async def test_db():
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(menu_router, prefix="/menu", tags=["Menu"])
 app.include_router(restaurant_router, prefix="/restaurants", tags=["Restaurant"])
+app.include_router(table_router, prefix="/tables", tags=["Tables"])
 app.include_router(reservation_router, prefix="/reservations", tags=["Reservation"])

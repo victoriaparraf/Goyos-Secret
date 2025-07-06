@@ -12,7 +12,7 @@ from modules.restaurant.application.dtos.restaurant_create_dto import CreateRest
 from modules.restaurant.application.dtos.restaurant_update_dto import UpdateRestaurantDTO
 from modules.restaurant.application.dtos.restaurant_response_dto import RestaurantResponseDto
 
-router = APIRouter(prefix="/restaurants", tags=["Restaurants"])
+router = APIRouter()
 
 # Dependency to inject the service
 def get_restaurant_service(db: Session = Depends(get_db)) -> RestaurantService:
