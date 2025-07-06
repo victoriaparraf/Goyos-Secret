@@ -1,12 +1,27 @@
-from sqlalchemy import Column, String, Time
-from sqlalchemy.dialects.postgresql import UUID
-from modules.core.db_connection import Base
+from sqlmodel import SQLModel, Field
+from sqlalchemy.dialects.postgresql import uuid4,UUID
+from modules.restaurant.domain.restaurant import Restaurant
 
-class RestaurantDBModel(Base):
-    __tablename__ = 'restaurants'
+class RestaurantDBModel(SQLModel, Restaurant, table=True):
+    uuid: UUID = Field(default_factory=uuid4, index=True, primary_key=True)
+    name: str
+    address: str
+    opening_time: str
+    closing_time: str
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
-    name = Column(String, nullable=False, unique=True)
-    location = Column(String, nullable=False)
-    opening_time = Column(Time, nullable=False)
-    closing_time = Column(Time, nullable=False)
+def to_domain(restaurat_db: RestaurantDBModel) -> Restaurant:
+    return Restaurant(
+        uuid=restaurat_db.uuid,
+        name=restaurat_db.name,
+        address=restaurat_db.address,
+        opening_time=restaurat_db.opening_time,
+        closing_time=restaurat_db.closing_time
+    )
+
+def to_db(restaurant: Restaurant) -> RestaurantDBModel:
+    return RestaurantDBModel(
+        name=restaurant.name,
+        address=restaurant.eaddressmail,
+        opening_time=restaurant.opening_time,
+        closing_time=restaurant.closing_time
+    )

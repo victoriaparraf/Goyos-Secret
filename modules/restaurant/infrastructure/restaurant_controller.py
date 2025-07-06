@@ -6,7 +6,8 @@ from modules.restaurant.application.restaurant_services import RestaurantService
 from modules.restaurant.application.table_services import TableServices
 from modules.restaurant.infrastructure.restaurant_repository import RestaurantRepository
 from modules.restaurant.infrastructure.table_repository import TableRepository
-from modules.restaurant.application.dtos.restaurant_dto import CreateRestaurantDTO, UpdateRestaurantDTO, RestaurantDTO
+from modules.restaurant.application.dtos.restaurant_create_dto import CreateRestaurantDTO
+from modules.restaurant.application.dtos.restaurant_update_dto import UpdateRestaurantDTO
 from modules.restaurant.application.dtos.table_dto import CreateTableDTO, TableDTO
 from modules.auth.application.auth_services import get_current_user, User # Asumiendo que existe
 from modules.restaurant.domain.exceptions import (
@@ -24,7 +25,7 @@ def get_restaurant_services(db: Session = Depends(get_db)) -> RestaurantServices
 def get_table_services(db: Session = Depends(get_db)) -> TableServices:
     return TableServices(TableRepository(db))
 
-@router.post("/restaurants/", response_model=RestaurantDTO)
+@router.post("/restaurants/", response_model=CreateRestaurantDTO)
 def create_restaurant(
     restaurant_dto: CreateRestaurantDTO,
     restaurant_services: RestaurantServices = Depends(get_restaurant_services),
@@ -39,7 +40,7 @@ def create_restaurant(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.put("/restaurants/{restaurant_id}", response_model=RestaurantDTO)
+@router.put("/restaurants/{restaurant_id}", response_model=UpdateRestaurantDTO)
 def update_restaurant(
     restaurant_id: UUID,
     restaurant_dto: UpdateRestaurantDTO,
@@ -66,6 +67,8 @@ def delete_restaurant(
         return {"message": "Restaurante eliminado correctamente."}
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
+    except RestaurantNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except CannotDeleteRestaurantWithTablesError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
