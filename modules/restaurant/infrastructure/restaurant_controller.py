@@ -22,14 +22,18 @@ def get_restaurant_service(db: Session = Depends(get_db)) -> RestaurantService:
 
 # GET: List all restaurants (open to all)
 @router.get("/", response_model=List[RestaurantResponseDto])
-def list_restaurants(service: RestaurantService = Depends(get_restaurant_service)):
+def list_restaurants(
+    service: RestaurantService = Depends(get_restaurant_service),
+    current_user = Security(get_current_user, scopes=["admin:restaurants", "restaurant:read"]),
+):
     return service.list_restaurants()
 
 # GET: Get restaurant by ID (open to all)
 @router.get("/{restaurant_id}", response_model=RestaurantResponseDto)
 def get_restaurant(
     restaurant_id: UUID,
-    service: RestaurantService = Depends(get_restaurant_service)
+    service: RestaurantService = Depends(get_restaurant_service),
+    current_user = Security(get_current_user, scopes=["admin:restaurants", "restaurant:read"]),
 ):
     return service.get_restaurant_by_id(restaurant_id)
 

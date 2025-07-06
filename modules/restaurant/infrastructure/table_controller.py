@@ -22,7 +22,8 @@ def get_table_service(db: Session = Depends(get_db)) -> TableService:
 @router.get("/{table_id}", response_model=TableResponseDto)
 def get_table_by_id(
     table_id: UUID,
-    service: TableService = Depends(get_table_service)
+    service: TableService = Depends(get_table_service),
+    current_user = Security(get_current_user, scopes=["admin:restaurants", "restaurant:read"]),
 ):
     return service.get_table_by_id(table_id)
 
@@ -30,7 +31,8 @@ def get_table_by_id(
 @router.get("/restaurant/{restaurant_id}", response_model=List[TableResponseDto])
 def get_tables_by_restaurant(
     restaurant_id: UUID,
-    service: TableService = Depends(get_table_service)
+    service: TableService = Depends(get_table_service),
+    current_user = Security(get_current_user, scopes=["admin:restaurants", "restaurant:read"]),
 ):
     return service.get_tables_by_restaurant(restaurant_id)
 
@@ -40,7 +42,8 @@ def search_available_tables(
     restaurant_id: UUID,
     capacity: int,
     location: str,
-    service: TableService = Depends(get_table_service)
+    service: TableService = Depends(get_table_service),
+    current_user = Security(get_current_user, scopes=["admin:restaurants", "restaurant:read"]),
 ):
     return service.get_available_tables(restaurant_id, capacity, location)
 
