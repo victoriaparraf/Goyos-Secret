@@ -7,7 +7,6 @@ from modules.reservation.domain.reservation_repository_interface import IReserva
 from modules.restaurant.domain.table_repository_interface import ITableRepository
 from modules.menu.domain.menu_repository_interface import IMenuRepository
 from modules.reservation.application.dtos.reservation_create_dto import ReservationCreateDto
-from modules.reservation.application.dtos.reservation_update_dto import ReservationUpdateDto
 from modules.reservation.application.dtos.reservation_response_dto import ReservationResponseDto
 
 class ReservationService:
