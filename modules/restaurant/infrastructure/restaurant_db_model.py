@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field
-from sqlalchemy.dialects.postgresql import uuid4,UUID
+from uuid import uuid4, UUID
 from modules.restaurant.domain.restaurant import Restaurant
 
 class RestaurantDBModel(SQLModel, Restaurant, table=True):

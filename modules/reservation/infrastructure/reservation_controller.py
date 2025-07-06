@@ -14,7 +14,7 @@ from modules.menu.infrastructure.menu_repository import MenuRepository
 from modules.reservation.application.dtos.reservation_create_dto import ReservationCreateDto
 from modules.reservation.application.dtos.reservation_response_dto import ReservationResponseDto
 
-router = APIRouter(prefix="/reservations", tags=["Reservations"])
+router = APIRouter()
 
 # Dependency injection
 def get_reservation_service(db: Session = Depends(get_db)) -> ReservationService:

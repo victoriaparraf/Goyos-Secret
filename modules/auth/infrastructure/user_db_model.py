@@ -23,7 +23,7 @@ def to_domain(user_db: UserDB) -> User:
 def to_db(user: User) -> UserDB:
     return UserDB(
         name=user.name,
-        email=user.email,
+        email=user.email.lower(),
         hashed_password=user.hashed_password,
         role=user.role
     )

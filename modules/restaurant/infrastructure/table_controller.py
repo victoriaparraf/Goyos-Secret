@@ -7,11 +7,11 @@ from modules.auth.infrastructure.auth_controller import get_current_user
 from modules.auth.domain.user import UserRole
 from modules.restaurant.application.table_services import TableService
 from modules.restaurant.infrastructure.table_repository import TableRepository
-from modules.restaurant.application.dtos.table_create_dto import TableCreateDto
-from modules.restaurant.application.dtos.table_update_dto import TableUpdateDto
+from modules.restaurant.application.dtos.table_create_dto import CreateTableDTO
+from modules.restaurant.application.dtos.table_update_dto import UpdateTableDTO
 from modules.restaurant.application.dtos.table_response_dto import TableResponseDto
 
-router = APIRouter(prefix="/tables", tags=["Tables"])
+router = APIRouter()
 
 # Dependency injection
 def get_table_service(db: Session = Depends(get_db)) -> TableService:
@@ -50,7 +50,7 @@ def search_available_tables(
 # POST /tables/
 @router.post("/", response_model=TableResponseDto, status_code=status.HTTP_201_CREATED)
 def create_table(
-    dto: TableCreateDto,
+    dto: CreateTableDTO,
     service: TableService = Depends(get_table_service),
     current_user = Security(get_current_user, scopes=["admin:restaurants"])
 ):
@@ -62,7 +62,7 @@ def create_table(
 @router.put("/{table_id}", response_model=TableResponseDto)
 def update_table(
     table_id: UUID,
-    dto: TableUpdateDto,
+    dto: UpdateTableDTO,
     service: TableService = Depends(get_table_service),
     current_user = Security(get_current_user, scopes=["admin:restaurants"])
 ):

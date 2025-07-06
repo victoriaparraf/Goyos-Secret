@@ -8,11 +8,11 @@ from modules.core.db_connection import get_db
 from modules.restaurant.infrastructure.restaurant_repository import RestaurantRepository
 from modules.restaurant.infrastructure.table_repository import TableRepository
 from modules.restaurant.application.restaurant_services import RestaurantService
-from modules.restaurant.application.dtos.restaurant_create_dto import RestaurantCreateDto
-from modules.restaurant.application.dtos.restaurant_update_dto import RestaurantUpdateDto
+from modules.restaurant.application.dtos.restaurant_create_dto import CreateRestaurantDTO
+from modules.restaurant.application.dtos.restaurant_update_dto import UpdateRestaurantDTO
 from modules.restaurant.application.dtos.restaurant_response_dto import RestaurantResponseDto
 
-router = APIRouter(prefix="/restaurants", tags=["Restaurants"])
+router = APIRouter()
 
 # Dependency to inject the service
 def get_restaurant_service(db: Session = Depends(get_db)) -> RestaurantService:
@@ -40,7 +40,7 @@ def get_restaurant(
 # POST: Create restaurant (admin only)
 @router.post("/", response_model=RestaurantResponseDto, status_code=status.HTTP_201_CREATED)
 def create_restaurant(
-    dto: RestaurantCreateDto,
+    dto: CreateRestaurantDTO,
     service: RestaurantService = Depends(get_restaurant_service),
     current_user = Security(get_current_user, scopes=["admin:restaurants"])
 ):
@@ -52,7 +52,7 @@ def create_restaurant(
 @router.put("/{restaurant_id}", response_model=RestaurantResponseDto)
 def update_restaurant(
     restaurant_id: UUID,
-    dto: RestaurantUpdateDto,
+    dto: UpdateRestaurantDTO,
     service: RestaurantService = Depends(get_restaurant_service),
     current_user = Security(get_current_user, scopes=["admin:restaurants"])
 ):

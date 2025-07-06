@@ -19,10 +19,11 @@ class UserServices:
     
     def get_user_by_email(self, email: str) -> Optional[User]:
         """Obtiene un usuario por su email."""
-        return self.user_repo.get_by_email(email)
+        return self.user_repo.get_by_email(email.lower())
     
     def create_user(self, user: User) -> User:
         """Crea un nuevo usuario en el sistema."""
+        
         if user.role == UserRole.ADMIN:
             raise HTTPException(status_code=403, detail="Error: Inadmisible role admin")
         

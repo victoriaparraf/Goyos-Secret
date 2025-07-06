@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from typing import List
 from modules.restaurant.domain.table_repository_interface import ITableRepository
 from modules.restaurant.domain.table import Table
-from modules.restaurant.application.dtos.table_create_dto import TableCreateDto
-from modules.restaurant.application.dtos.table_update_dto import TableUpdateDto
+from modules.restaurant.application.dtos.table_create_dto import CreateTableDTO
+from modules.restaurant.application.dtos.table_update_dto import UpdateTableDTO
 from modules.restaurant.application.dtos.table_response_dto import TableResponseDto
 
 
@@ -12,7 +12,7 @@ class TableService:
     def __init__(self, table_repo: ITableRepository):
         self.table_repo = table_repo
 
-    def create_table(self, dto: TableCreateDto) -> TableResponseDto:
+    def create_table(self, dto: CreateTableDTO) -> TableResponseDto:
         # Validar duplicado de número de mesa en el restaurante
         existing = self.table_repo.get_by_restaurant_and_table_number(dto.restaurant_id, dto.number)
         if existing:
@@ -29,7 +29,7 @@ class TableService:
         saved = self.table_repo.save(table)
         return TableResponseDto(**saved.model_dump())
 
-    def update_table(self, table_id: UUID, dto: TableUpdateDto) -> TableResponseDto:
+    def update_table(self, table_id: UUID, dto: UpdateTableDTO) -> TableResponseDto:
         table = self.table_repo.get_by_id(table_id)
         if not table:
             raise HTTPException(status_code=404, detail="Table not found.")
