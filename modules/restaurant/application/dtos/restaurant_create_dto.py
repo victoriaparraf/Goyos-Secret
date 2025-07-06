@@ -3,6 +3,6 @@ from datetime import time
 
 class CreateRestaurantDTO(BaseModel):
     name: str
-    location: str
+    address: str
     opening_time: time
     closing_time: time

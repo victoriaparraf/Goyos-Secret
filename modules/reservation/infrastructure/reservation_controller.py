@@ -40,12 +40,24 @@ def list_user_reservations(
 ):
     return service.get_reservations_by_user(current_user.uuid)
 
+# GET /reservations/range?start=...&end=...
+@router.get("/range", response_model=List[ReservationResponseDto])
+def get_reservations_by_date_range(
+    start: datetime = Query(...),
+    end: datetime = Query(...),
+    service: ReservationService = Depends(get_reservation_service),
+    current_user = Security(get_current_user, scopes=["admin:reservation"])
+):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only admins can access this data.")
+    return service.get_by_date_range(start, end)
+
 # GET /reservations/{id}
 @router.get("/{reservation_id}", response_model=ReservationResponseDto)
 def get_reservation_by_id(
     reservation_id: UUID,
     service: ReservationService = Depends(get_reservation_service),
-    current_user = Security(get_current_user, scopes=["reservation:read", "admin:reservations"])
+    current_user = Security(get_current_user, scopes=["reservation:read", "admin:reservation"])
 ):
     reservation = service.get_reservation_by_id(reservation_id)
     if current_user.role == UserRole.CLIENT and reservation.user_id != current_user.uuid:
@@ -57,7 +69,7 @@ def get_reservation_by_id(
 def cancel_reservation(
     reservation_id: UUID,
     service: ReservationService = Depends(get_reservation_service),
-    current_user = Security(get_current_user, scopes=["reservation:write", "admin:reservations"])
+    current_user = Security(get_current_user, scopes=["reservation:write", "admin:reservation"])
 ):
     is_admin = current_user.role == UserRole.ADMIN
     service.cancel_reservation(reservation_id, current_user.uuid, is_admin)
@@ -68,20 +80,8 @@ def cancel_reservation(
 def get_reservations_by_restaurant(
     restaurant_id: UUID,
     service: ReservationService = Depends(get_reservation_service),
-    current_user = Security(get_current_user, scopes=["admin:reservations"])
+    current_user = Security(get_current_user, scopes=["admin:reservation"])
 ):
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Only admins can access this data.")
     return service.get_all_by_restaurant(restaurant_id)
-
-# GET /reservations/range?start=...&end=...
-@router.get("/range", response_model=List[ReservationResponseDto])
-def get_reservations_by_date_range(
-    start: datetime = Query(...),
-    end: datetime = Query(...),
-    service: ReservationService = Depends(get_reservation_service),
-    current_user = Security(get_current_user, scopes=["admin:reservations"])
-):
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="Only admins can access this data.")
-    return service.get_by_date_range(start, end)

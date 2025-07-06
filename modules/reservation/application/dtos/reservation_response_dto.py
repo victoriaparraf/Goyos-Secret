@@ -11,6 +11,6 @@ class ReservationResponseDto(BaseModel):
     start_time: datetime
     end_time: datetime
     num_people: int
-    special_instructions: Optional[str]
+    special_instructions: Optional[str] = None
     status: ReservationStatus
-    preordered_dishes: Optional[List[UUID]]
+    preordered_dishes: Optional[List[UUID]] = []
