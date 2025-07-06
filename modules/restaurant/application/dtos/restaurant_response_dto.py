@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from uuid import UUID
 from datetime import time
 
-class Restaurant(BaseModel):
+class RestaurantResponseDto(BaseModel):
     id: UUID
     name: str
     address: str
