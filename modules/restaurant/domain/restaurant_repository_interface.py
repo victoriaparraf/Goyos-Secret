@@ -23,3 +23,8 @@ class IRestaurantRepository(ABC):
     def delete(self, restaurant_id: UUID) -> None:
         """Elimina un restaurante por su ID"""
         pass
+    
+    @abstractmethod
+    def modify_restaurant(self, restaurant: Restaurant) -> Restaurant:
+        """Actualiza los datos de un restaurante existente."""
+        pass

@@ -1,82 +1,79 @@
-from uuid import UUID
-from modules.restaurant.domain.restaurant import Restaurant
+from uuid import uuid4, UUID
+from typing import List
+from fastapi import HTTPException
 from modules.restaurant.domain.restaurant_repository_interface import IRestaurantRepository
 from modules.restaurant.domain.table_repository_interface import ITableRepository
-from modules.restaurant.application.dtos.restaurant_create_dto import CreateRestaurantDTO
-from modules.restaurant.application.dtos.restaurant_update_dto import UpdateRestaurantDTO
-from modules.auth.application.auth_services import User  
-from modules.restaurant.domain.exceptions import (
-    RestaurantAlreadyExistsError,
-    RestaurantNotFoundError,
-    CannotDeleteRestaurantWithTablesError,
-)
+from modules.restaurant.domain.restaurant import Restaurant
+from modules.restaurant.application.dtos.restaurant_create_dto import RestaurantCreateDto
+from modules.restaurant.application.dtos.restaurant_update_dto import RestaurantUpdateDto
+from modules.restaurant.application.dtos.restaurant_response_dto import RestaurantResponseDto
 
-class RestaurantServices:
-    def __init__(self, restaurant_repository: IRestaurantRepository, table_repository: ITableRepository):
-        self.restaurant_repository = restaurant_repository
-        self.table_repository = table_repository
 
-    def create_restaurant(self, restaurant_dto: CreateRestaurantDTO, current_user: User) -> CreateRestaurantDTO:
-        # Solo admin puede crear
-        if not hasattr(current_user, "role") or getattr(current_user, "role", None) != "admin":
-            raise PermissionError("Solo los administradores pueden crear restaurantes.")
+class RestaurantService:
+    def __init__(
+        self,
+        restaurant_repo: IRestaurantRepository,
+        table_repo: ITableRepository
+    ):
+        self.restaurant_repo = restaurant_repo
+        self.table_repo = table_repo
 
-        # Validar campos obligatorios (asumimos que el DTO ya valida presencia, pero validamos horario aquí)
-        if restaurant_dto.opening_time >= restaurant_dto.closing_time:
-            raise ValueError("La hora de cierre debe ser mayor a la hora de apertura.")
+    def create_restaurant(self, dto: RestaurantCreateDto) -> RestaurantResponseDto:
+        # Validación: nombre único
+        existing = self.restaurant_repo.get_by_name(dto.name)
+        if existing:
+            raise HTTPException(status_code=409, detail="Restaurant with this name already exists.")
 
-        # Validar nombre único
-        existing_restaurant = self.restaurant_repository.get_by_name(restaurant_dto.name)
-        if existing_restaurant:
-            raise RestaurantAlreadyExistsError("Ya existe un restaurante con este nombre.")
+        # Validación: horarios
+        if dto.closing_time <= dto.opening_time:
+            raise HTTPException(status_code=400, detail="Closing time must be after opening time.")
 
-        # Crear entidad
         restaurant = Restaurant(
-            name=restaurant_dto.name,
-            location=restaurant_dto.location,
-            opening_time=restaurant_dto.opening_time,
-            closing_time=restaurant_dto.closing_time
+            id=uuid4(),
+            name=dto.name,
+            address=dto.address,
+            opening_time=dto.opening_time,
+            closing_time=dto.closing_time
         )
-        self.restaurant_repository.save(restaurant)
-        # Retornar DTO de respuesta
-        return CreateRestaurantDTO.model_validate(restaurant)
 
-    def update_restaurant(self, restaurant_id: UUID, restaurant_dto: UpdateRestaurantDTO, current_user: User) -> UpdateRestaurantDTO:
-        # Solo admin puede editar
-        if not hasattr(current_user, "role") or getattr(current_user, "role", None) != "admin":
-            raise PermissionError("Solo los administradores pueden modificar restaurantes.")
+        saved = self.restaurant_repo.save(restaurant)
+        return RestaurantResponseDto(**saved.model_dump())
 
-        restaurant = self.restaurant_repository.get_by_id(restaurant_id)
+    def get_restaurant_by_id(self, restaurant_id: UUID) -> RestaurantResponseDto:
+        restaurant = self.restaurant_repo.get_by_id(restaurant_id)
         if not restaurant:
-            raise RestaurantNotFoundError("Restaurante no encontrado.")
+            raise HTTPException(status_code=404, detail="Restaurant not found.")
+        return RestaurantResponseDto(**restaurant.model_dump())
 
-        # No se puede cambiar el id (no modificar restaurant_id)
-        # Validar horario
-        if restaurant_dto.opening_time >= restaurant_dto.closing_time:
-            raise ValueError("La hora de cierre debe ser mayor a la hora de apertura.")
+    def list_restaurants(self) -> List[RestaurantResponseDto]:
+        restaurants = self.restaurant_repo.get_all()
+        return [RestaurantResponseDto(**r.model_dump()) for r in restaurants]
 
-        # Actualizar campos permitidos
-        restaurant.name = restaurant_dto.name
-        restaurant.location = restaurant_dto.location
-        restaurant.opening_time = restaurant_dto.opening_time
-        restaurant.closing_time = restaurant_dto.closing_time
-
-        self.restaurant_repository.save(restaurant)
-        return UpdateRestaurantDTO.model_validate(restaurant)
-
-    def delete_restaurant(self, restaurant_id: UUID, current_user: User) -> None:
-        # Solo admin puede eliminar
-        if not hasattr(current_user, "role") or getattr(current_user, "role", None) != "admin":
-            raise PermissionError("Solo los administradores pueden eliminar restaurantes.")
-
-        # Verificar que el restaurante existe
-        restaurant = self.restaurant_repository.get_by_id(restaurant_id)
+    def update_restaurant(self, restaurant_id: UUID, dto: RestaurantUpdateDto) -> RestaurantResponseDto:
+        restaurant = self.restaurant_repo.get_by_id(restaurant_id)
         if not restaurant:
-            raise RestaurantNotFoundError("Restaurante no encontrado.")
+            raise HTTPException(status_code=404, detail="Restaurant not found.")
 
-        # No se puede eliminar si tiene mesas asociadas
-        tables = self.table_repository.get_by_restaurant_id(restaurant_id)
-        if tables and len(tables) > 0:
-            raise CannotDeleteRestaurantWithTablesError("No se puede eliminar un restaurante con mesas asociadas.")
+        # Validación: horario
+        if dto.opening_time or dto.closing_time:
+            opening = dto.opening_time or restaurant.opening_time
+            closing = dto.closing_time or restaurant.closing_time
+            if closing <= opening:
+                raise HTTPException(status_code=400, detail="Closing time must be after opening time.")
 
-        self.restaurant_repository.delete(restaurant_id)
+        for field, value in dto.model_dump(exclude_unset=True).items():
+            setattr(restaurant, field, value)
+
+        updated = self.restaurant_repo.modify_restaurant(restaurant)
+        return RestaurantResponseDto(**updated.model_dump())
+
+    def delete_restaurant(self, restaurant_id: UUID) -> None:
+        restaurant = self.restaurant_repo.get_by_id(restaurant_id)
+        if not restaurant:
+            raise HTTPException(status_code=404, detail="Restaurant not found.")
+
+        tables = self.table_repo.get_by_restaurant_id(restaurant_id)
+        if tables:
+            raise HTTPException(status_code=400, detail="Cannot delete restaurant with existing tables.")
+
+        self.restaurant_repo.delete(restaurant_id)

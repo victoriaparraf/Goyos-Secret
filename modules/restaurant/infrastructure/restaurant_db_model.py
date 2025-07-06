@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import uuid4,UUID
 from modules.restaurant.domain.restaurant import Restaurant
 
 class RestaurantDBModel(SQLModel, Restaurant, table=True):
-    uuid: UUID = Field(default_factory=uuid4, index=True, primary_key=True)
+    id: UUID = Field(default_factory=uuid4, index=True, primary_key=True)
     name: str
     address: str
     opening_time: str
@@ -21,7 +21,7 @@ def to_domain(restaurat_db: RestaurantDBModel) -> Restaurant:
 def to_db(restaurant: Restaurant) -> RestaurantDBModel:
     return RestaurantDBModel(
         name=restaurant.name,
-        address=restaurant.eaddressmail,
+        address=restaurant.address,
         opening_time=restaurant.opening_time,
         closing_time=restaurant.closing_time
     )
