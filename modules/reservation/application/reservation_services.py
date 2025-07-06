@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from modules.reservation.domain.reservation import Reservation, ReservationStatus
 from modules.reservation.domain.reservation_repository_interface import IReservationRepository
 from modules.restaurant.domain.table_repository_interface import ITableRepository
-from modules.menu.domain.menu_repository_interface import IMenuRepository
+from modules.menu.domain.menu_repository_interface import MenuRepositoryInterface
 from modules.reservation.application.dtos.reservation_create_dto import ReservationCreateDto
 from modules.reservation.application.dtos.reservation_response_dto import ReservationResponseDto
 
@@ -14,7 +14,7 @@ class ReservationService:
         self,
         reservation_repo: IReservationRepository,
         table_repo: ITableRepository,
-        menu_repo: IMenuRepository
+        menu_repo: MenuRepositoryInterface
     ):
         self.reservation_repo = reservation_repo
         self.table_repo = table_repo
