@@ -4,10 +4,10 @@ from uuid import UUID
 
 ROLE_SCOPES = {
     "admin": [
-        "admin:all", "admin:restaurants", "admin:menu", "admin:reservations", "admin:dashboard"
+        "admin:all", "admin:restaurants", "admin:menu", "admin:reservation", "admin:dashboard"
     ],
     "client": [
-        "client:read", "client:write", "menu:read", "reservations:read", "reservations:write", "restaurants:read"
+        "client:read", "client:write", "menu:read", "reservation:read", "reservation:write", "restaurants:read"
     ]
 }
 
