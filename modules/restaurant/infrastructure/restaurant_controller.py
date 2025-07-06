@@ -1,94 +1,69 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Security, status
+from sqlmodel import Session
+from typing import List
 from uuid import UUID
+from modules.auth.domain.user import UserRole
+from modules.auth.infrastructure.auth_controller import get_current_user
 from modules.core.db_connection import get_db
-from modules.restaurant.application.restaurant_services import RestaurantServices
-from modules.restaurant.application.table_services import TableServices
 from modules.restaurant.infrastructure.restaurant_repository import RestaurantRepository
 from modules.restaurant.infrastructure.table_repository import TableRepository
-from modules.restaurant.application.dtos.restaurant_create_dto import CreateRestaurantDTO
-from modules.restaurant.application.dtos.restaurant_update_dto import UpdateRestaurantDTO
-from modules.restaurant.application.dtos.table_dto import CreateTableDTO, TableDTO
-from modules.auth.application.auth_services import get_current_user, User # Asumiendo que existe
-from modules.restaurant.domain.exceptions import (
-    RestaurantAlreadyExistsError,
-    RestaurantNotFoundError,
-    TableNumberConflictError,
-    CannotDeleteRestaurantWithTablesError,
-)
+from modules.restaurant.application.restaurant_services import RestaurantService
+from modules.restaurant.application.dtos.restaurant_create_dto import RestaurantCreateDto
+from modules.restaurant.application.dtos.restaurant_update_dto import RestaurantUpdateDto
+from modules.restaurant.application.dtos.restaurant_response_dto import RestaurantResponseDto
 
-router = APIRouter()
+router = APIRouter(prefix="/restaurants", tags=["Restaurants"])
 
-def get_restaurant_services(db: Session = Depends(get_db)) -> RestaurantServices:
-    return RestaurantServices(RestaurantRepository(db), TableRepository(db))
+# Dependency to inject the service
+def get_restaurant_service(db: Session = Depends(get_db)) -> RestaurantService:
+    restaurant_repo = RestaurantRepository(db)
+    table_repo = TableRepository(db)
+    return RestaurantService(restaurant_repo, table_repo)
 
-def get_table_services(db: Session = Depends(get_db)) -> TableServices:
-    return TableServices(TableRepository(db))
+# GET: List all restaurants (open to all)
+@router.get("/", response_model=List[RestaurantResponseDto])
+def list_restaurants(service: RestaurantService = Depends(get_restaurant_service)):
+    return service.list_restaurants()
 
-@router.post("/restaurants/", response_model=CreateRestaurantDTO)
-def create_restaurant(
-    restaurant_dto: CreateRestaurantDTO,
-    restaurant_services: RestaurantServices = Depends(get_restaurant_services),
-    current_user: User = Depends(get_current_user)
+# GET: Get restaurant by ID (open to all)
+@router.get("/{restaurant_id}", response_model=RestaurantResponseDto)
+def get_restaurant(
+    restaurant_id: UUID,
+    service: RestaurantService = Depends(get_restaurant_service)
 ):
-    try:
-        return restaurant_services.create_restaurant(restaurant_dto, current_user)
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
-    except RestaurantAlreadyExistsError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return service.get_restaurant_by_id(restaurant_id)
 
-@router.put("/restaurants/{restaurant_id}", response_model=UpdateRestaurantDTO)
+# POST: Create restaurant (admin only)
+@router.post("/", response_model=RestaurantResponseDto, status_code=status.HTTP_201_CREATED)
+def create_restaurant(
+    dto: RestaurantCreateDto,
+    service: RestaurantService = Depends(get_restaurant_service),
+    current_user = Security(get_current_user, scopes=["admin:restaurants"])
+):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only admins can create restaurants.")
+    return service.create_restaurant(dto)
+
+# PUT: Modify restaurant (admin only)
+@router.put("/{restaurant_id}", response_model=RestaurantResponseDto)
 def update_restaurant(
     restaurant_id: UUID,
-    restaurant_dto: UpdateRestaurantDTO,
-    restaurant_services: RestaurantServices = Depends(get_restaurant_services),
-    current_user: User = Depends(get_current_user)
+    dto: RestaurantUpdateDto,
+    service: RestaurantService = Depends(get_restaurant_service),
+    current_user = Security(get_current_user, scopes=["admin:restaurants"])
 ):
-    try:
-        return restaurant_services.update_restaurant(restaurant_id, restaurant_dto, current_user)
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
-    except RestaurantNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only admins can modify restaurants.")
+    return service.update_restaurant(restaurant_id, dto)
 
-@router.delete("/restaurants/{restaurant_id}")
+# DELETE: Delete restaurant (admin only)
+@router.delete("/{restaurant_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_restaurant(
     restaurant_id: UUID,
-    restaurant_services: RestaurantServices = Depends(get_restaurant_services),
-    current_user: User = Depends(get_current_user)
+    service: RestaurantService = Depends(get_restaurant_service),
+    current_user = Security(get_current_user, scopes=["admin:restaurants"])
 ):
-    try:
-        restaurant_services.delete_restaurant(restaurant_id, current_user)
-        return {"message": "Restaurante eliminado correctamente."}
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
-    except RestaurantNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except CannotDeleteRestaurantWithTablesError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-
-@router.post("/tables/", response_model=TableDTO)
-def create_table(
-    table_dto: CreateTableDTO,
-    table_services: TableServices = Depends(get_table_services)
-):
-    try:
-        return table_services.create_table(table_dto)
-    except TableNumberConflictError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@router.get("/restaurants/{restaurant_id}/tables/available")
-def get_available_tables(
-    restaurant_id: UUID,
-    capacity: int,
-    location: str,
-    table_services: TableServices = Depends(get_table_services)
-):
-    return table_services.get_available_tables(restaurant_id, capacity, location)
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only admins can delete restaurants.")
+    service.delete_restaurant(restaurant_id)
+    return
