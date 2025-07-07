@@ -13,6 +13,11 @@ class IRestaurantRepository(ABC):
     def get_by_name(self, name: str) -> Optional[Restaurant]:
         """Obtiene un restaurante por su nombre"""
         pass
+    
+    @abstractmethod
+    def get_all(self) -> list[Restaurant]:
+        """Obtiene todos los restaurantes"""
+        pass
 
     @abstractmethod
     def save(self, restaurant: Restaurant) -> Restaurant:
