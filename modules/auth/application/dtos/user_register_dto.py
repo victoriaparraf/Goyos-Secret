@@ -6,5 +6,5 @@ from modules.auth.domain.user import UserRole
 class UserRegisterDto(BaseModel):
     name: str
     email: str
-    hashed_password: str
+    password: str
     role: UserRole
