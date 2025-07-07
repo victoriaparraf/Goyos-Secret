@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from uuid import UUID
 
 ROLE_SCOPES = {
@@ -18,6 +18,6 @@ class UserRole(Enum):
 class User(BaseModel):
     uuid: UUID
     name: str
-    email: str
+    email: EmailStr
     hashed_password: str
     role: UserRole

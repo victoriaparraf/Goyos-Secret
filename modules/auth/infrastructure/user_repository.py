@@ -31,4 +31,3 @@ class UserRepository(UserRepositoryInterface):
         statement = select(UserDB).where(UserDB.uuid == user_uuid)
         result = self.db.exec(statement).first()
         return result
-    
