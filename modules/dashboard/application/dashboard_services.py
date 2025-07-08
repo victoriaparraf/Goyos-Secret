@@ -27,14 +27,11 @@ class DashboardService:
         }
 
     def get_top_preordered_dishes(self, top_n: int = 5) -> Dict[str, int]:
-        result = self.db.exec(select(ReservationDBModel)).all()
+        from modules.menu.infrastructure.pre_order_item_db_model import PreOrderItemDB
+        result = self.db.exec(select(PreOrderItemDB)).all()
         dish_counter = Counter()
-
-        for r in result:
-            if r.preordered_dishes:
-                for dish in r.preordered_dishes:
-                    dish_counter[dish] += 1
-
+        for pre_order in result:
+            dish_counter[str(pre_order.menu_item_id)] += pre_order.quantity if pre_order.quantity else 1
         return dict(dish_counter.most_common(top_n))
 
     def get_occupancy_percentage(self) -> List[Dict[str, object]]:
