@@ -95,3 +95,118 @@ To run the tests, activate your virtual environment and execute:
 ```bash
 pytest
 ```
+
+## Project Structure
+
+```
+├─── .env.template
+├─── .gitignore
+├─── alembic.ini
+├─── docker-compose.yml
+├─── Dockerfile
+├─── main.py
+├─── pytest.ini
+├─── README.md
+├─── requirements.txt
+├─── alembic/
+│    ├─── env.py
+│    ├─── README
+│    ├─── script.py.mako
+│    └─── versions/
+│         ├─── 22b7e3793d08_initial_migration.py
+│         ├─── 4ed53021ab7d_delete_duplicate_user.py
+│         └─── ebe79cf4523d_pruebita.py
+└─── modules/
+     ├─── auth/
+     │    ├─── application/
+     │    │    ├─── auth_services.py
+     │    │    ├─── user_services.py
+     │    │    └─── dtos/
+     │    │         ├─── user_login_dto.py
+     │    │         ├─── user_modify_dto.py
+     │    │         └─── user_register_dto.py
+     │    ├─── domain/
+     │    │    ├─── user_repository_interface.py
+     │    │    └─── user.py
+     │    ├─── infrastructure/
+     │    │    ├─── auth_controller.py
+     │    │    ├─── user_db_model.py
+     │    │    └─── user_repository.py
+     │    └─── tests/
+     │         └─── infrastructure/
+     │              └─── test_auth_controller.py
+     ├─── core/
+     │    └─── db_connection.py
+     ├─── dashboard/
+     │    ├─── application/
+     │    │    └─── dashboard_services.py
+     │    └─── infrastructure/
+     │         └─── dashboard_controller.py
+     ├─── menu/
+     │    ├─── application/
+     │    │    ├─── menu_services.py
+     │    │    └─── dtos/
+     │    │         └─── menu_item_dto.py
+     │    ├─── domain/
+     │    │    ├─── menu_item.py
+     │    │    ├─── menu_repository_interface.py
+     │    │    └─── pre_order_item.py
+     │    ├─── infrastructure/
+     │    │    ├─── menu_controller.py
+     │    │    ├─── menu_item_db_model.py
+     │    │    ├─── menu_repository.py
+     │    │    └─── pre_order_item_db_model.py
+     │    └─── tests/
+     │         ├─── application/
+     │         │    └─── test_menu_services.py
+     │         └─── infrastructure/
+     │              └─── test_menu_controller.py
+     ├─── notifications/
+     │    └─── notifications.py
+     ├─── reservation/
+     │    ├─── application/
+     │    │    ├─── reservation_services.py
+     │    │    └─── dtos/
+     │    │         ├─── reservation_create_dto.py
+     │    │         └─── reservation_response_dto.py
+     │    ├─── domain/
+     │    │    ├─── reservation_repository_interface.py
+     │    │    └─── reservation.py
+     │    ├─── infrastructure/
+     │    │    ├─── reservation_controller.py
+     │    │    ├─── reservation_db_model.py
+     │    │    └─── reservation_repository.py
+     │    └─── tests/
+     │         └─── application/
+     │              └─── test_reservation_services.py
+     └─── restaurant/
+          ├─── application/
+          │    ├─── restaurant_services.py
+          │    ├─── table_services.py
+          │    └─── dtos/
+          │         ├─── restaurant_create_dto.py
+          │         ├─── restaurant_response_dto.py
+          │         ├─── restaurant_update_dto.py
+          │         ├─── table_create_dto.py
+          │         ├─── table_response_dto.py
+          │         └─── table_update_dto.py
+          ├─── domain/
+          │    ├─── restaurant_repository_interface.py
+          │    ├─── restaurant.py
+          │    ├─── table_repository_interface.py
+          │    └─── table.py
+          ├─── infrastructure/
+          │    ├─── restaurant_controller.py
+          │    ├─── restaurant_db_model.py
+          │    ├─── restaurant_repository.py
+          │    ├─── table_controller.py
+          │    ├─── table_db_model.py
+          │    └─── table_repository.py
+          └─── tests/
+               ├─── application/
+               │    ├─── test_restaurant_service.py
+               │    └─── test_table_services.py
+               ├─── domain/
+               │    └─── test_restaurant.py
+               └─── infrastructure/
+                    └─── test_restaurant_controller.py
