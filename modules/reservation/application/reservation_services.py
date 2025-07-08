@@ -71,6 +71,7 @@ class ReservationService:
             end_time=dto.end_time,
             num_people=dto.num_people,
             special_instructions=dto.special_instructions,
+            preordered_dishes=dto.preordered_dishes, 
             status=ReservationStatus.PENDING
         )
 

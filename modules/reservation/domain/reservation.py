@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 from pydantic import BaseModel
 from datetime import datetime
@@ -18,4 +18,5 @@ class Reservation(BaseModel):
     end_time: datetime
     num_people: int
     special_instructions: Optional[str]
+    preordered_dishes: Optional[List[UUID]] = []  # <<<< AÑADIDO
     status: ReservationStatus

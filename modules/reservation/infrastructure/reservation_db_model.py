@@ -1,8 +1,8 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import Column, SQLModel, Field
 from uuid import UUID, uuid4
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 from modules.reservation.domain.reservation import Reservation, ReservationStatus
 
 class ReservationDBModel(SQLModel, Reservation, table=True):
@@ -13,6 +13,7 @@ class ReservationDBModel(SQLModel, Reservation, table=True):
     end_time: datetime
     num_people: int
     special_instructions: Optional[str] = None
+    preordered_dishes: Optional[List[UUID]] = Field(default_factory=list)
     status: ReservationStatus = Field(default=ReservationStatus.PENDING)
 
 def to_domain(res: ReservationDBModel) -> Reservation:
@@ -24,6 +25,7 @@ def to_domain(res: ReservationDBModel) -> Reservation:
         end_time=res.end_time,
         num_people=res.num_people,
         special_instructions=res.special_instructions,
+        preordered_dishes=res.preordered_dishes,
         status=res.status
     )
 
@@ -36,5 +38,6 @@ def to_db(res: Reservation) -> ReservationDBModel:
         end_time=res.end_time,
         num_people=res.num_people,
         special_instructions=res.special_instructions,
+        preordered_dishes=res.preordered_dishes,
         status=res.status
     )
