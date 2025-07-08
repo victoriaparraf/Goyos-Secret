@@ -113,9 +113,6 @@ pytest
 │    ├─── README
 │    ├─── script.py.mako
 │    └─── versions/
-│         ├─── 22b7e3793d08_initial_migration.py
-│         ├─── 4ed53021ab7d_delete_duplicate_user.py
-│         └─── ebe79cf4523d_pruebita.py
 └─── modules/
      ├─── auth/
      │    ├─── application/
