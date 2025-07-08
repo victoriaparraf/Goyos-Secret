@@ -11,6 +11,7 @@ from modules.reservation.application.reservation_services import ReservationServ
 from modules.reservation.infrastructure.reservation_repository import ReservationRepository
 from modules.restaurant.infrastructure.table_repository import TableRepository
 from modules.menu.infrastructure.menu_repository import MenuRepository
+from modules.restaurant.infrastructure.restaurant_repository import RestaurantRepository
 from modules.reservation.application.dtos.reservation_create_dto import ReservationCreateDto
 from modules.reservation.application.dtos.reservation_response_dto import ReservationResponseDto
 
@@ -21,7 +22,8 @@ def get_reservation_service(db: Session = Depends(get_db)) -> ReservationService
     reservation_repo = ReservationRepository(db)
     table_repo = TableRepository(db)
     menu_repo = MenuRepository(db)
-    return ReservationService(reservation_repo, table_repo, menu_repo)
+    restaurant_repo = RestaurantRepository(db)
+    return ReservationService(reservation_repo, table_repo, menu_repo, restaurant_repo)
 
 # POST /reservations/
 @router.post("/", response_model=ReservationResponseDto, status_code=status.HTTP_201_CREATED)

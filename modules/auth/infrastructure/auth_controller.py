@@ -65,18 +65,18 @@ async def register_user(
     user_data: UserRegisterDto,
     service: UserServices = Depends(get_user_services)
 ):
-    try: 
-        user_db = to_db(user_data)
-        user_db.hashed_password = pwd_context.hash(user_db.hashed_password)
-        created_user = service.create_user(user_db)
-        return {
-            "message": "User registered successfully", 
-            "user": created_user
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    hashed_password = pwd_context.hash(user_data.password)
+    user_db = UserDB(
+        name=user_data.name,
+        email=user_data.email.lower(),
+        hashed_password=hashed_password,
+        role=user_data.role
+    )
+    created_user = service.create_user(user_db)
+    return {
+        "message": "User registered successfully", 
+        "user": created_user
+    }
     
 @router.put("/modify/{user_id}")
 async def modify_user(

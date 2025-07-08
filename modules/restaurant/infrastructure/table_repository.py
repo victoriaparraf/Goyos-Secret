@@ -61,3 +61,8 @@ class TableRepository(ITableRepository):
         )
         result = self.db.exec(statement).all()
         return [to_domain(t) for t in result]
+
+    def get_total_tables_by_restaurant(self, restaurant_id: UUID) -> int:
+        statement = select(TableDBModel).where(TableDBModel.restaurant_id == restaurant_id)
+        results = self.db.exec(statement).all()
+        return len(results)

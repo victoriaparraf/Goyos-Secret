@@ -5,6 +5,8 @@ from modules.menu.infrastructure.menu_repository import MenuRepository
 from modules.menu.domain.menu_item import MenuItem
 from modules.menu.domain.pre_order_item import PreOrderItem
 from modules.core.db_connection import get_db
+from modules.auth.infrastructure.auth_controller import get_current_user
+from modules.auth.domain.user import UserRole
 from typing import List
 
 router = APIRouter()
@@ -65,8 +67,11 @@ async def create_pre_order_items(
 @router.post("/menu-item")
 async def create_menu_item(
     menu_item: MenuItem,
-    menu_repo: MenuRepositoryInterface = Depends(get_menu_repository)
+    menu_repo: MenuRepositoryInterface = Depends(get_menu_repository),
+    current_user = Security(get_current_user, scopes=["admin:menu"])
 ):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only admins can create menu items.")
     created_menu_item = menu_repo.create_menu_item(menu_item)
     return {
         "message": "Menu item created successfully", 

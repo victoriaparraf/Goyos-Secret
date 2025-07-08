@@ -33,6 +33,12 @@ class MenuServices:
     def create_menu_item(self, menu_item: MenuItem) -> MenuItem:
         if not menu_item:
             raise ValueError("Menu item is required")
+        
+        existing_item = self.menu_repo.get_menu_item_by_name(menu_item.name)
+        if existing_item:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=409, detail="Menu item with this name already exists.")
+
         return self.menu_repo.create_menu_item(menu_item)
 
 # Caso de uso: Modificar menu item
