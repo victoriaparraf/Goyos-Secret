@@ -10,6 +10,7 @@ from modules.menu.domain.pre_order_item import PreOrderItem
 
 
 class MenuRepository(MenuRepositoryInterface):
+    
     def __init__(self, db: Session):
         self.db = db
 
@@ -71,4 +72,13 @@ class MenuRepository(MenuRepositoryInterface):
         if menu_item:
             self.db.delete(menu_item)
             self.db.commit()
+            
+    def save_pre_order_item(self, pre_order_item: PreOrderItemDB):
+        """
+        Guarda un PreOrderItemDB en la base de datos.
+        """
+        self.db.add(pre_order_item)
+        self.db.commit()
+        self.db.refresh(pre_order_item)
+        return pre_order_item
 

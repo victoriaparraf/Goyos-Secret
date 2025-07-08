@@ -50,3 +50,11 @@ class MenuRepositoryInterface(ABC):
     def delete_menu_item(self, menu_item_id: str) -> None:
         """Elimina un menu item"""
         pass
+    
+    @abstractmethod
+    def save_pre_order_item(self, pre_order_item):
+        """
+        Guarda un PreOrderItemDB en la base de datos.
+        Debe ser implementado por la clase concreta del repositorio.
+        """
+        raise NotImplementedError
