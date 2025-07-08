@@ -51,18 +51,20 @@ class ReservationService:
             raise HTTPException(status_code=409, detail="This table is already reserved at that time.")
 
         # Validar platos (si existen)
-        if dto.preordered_dishes:
-            if len(dto.preordered_dishes) > 5:
+        preordered_dishes = getattr(dto, "preordered_dishes", None)
+        if preordered_dishes:
+            if len(preordered_dishes) > 5:
                 raise HTTPException(status_code=400, detail="Cannot pre-order more than 5 dishes.")
             menu_items = self.menu_repo.get_all_by_restaurant(table.restaurant_id)
             menu_ids = {dish.id for dish in menu_items if dish.available_stock > 0}
-            for dish_id in dto.preordered_dishes:
+            for dish_id in preordered_dishes:
                 if dish_id not in menu_ids:
                     raise HTTPException(status_code=400, detail=f"Dish {dish_id} is not available for this restaurant.")
             # Notificación de pre-orden
             from modules.notifications.notifications import registrar_preorden
-            registrar_preorden(n_platos=len(dto.preordered_dishes))
+            registrar_preorden(n_platos=len(preordered_dishes))
 
+        # Crear la reservación sin preordered_dishes (relación muchos a muchos)
         reservation = Reservation(
             uuid=uuid4(),
             user_id=user_id,
@@ -75,8 +77,22 @@ class ReservationService:
         )
 
         saved = self.reservation_repo.save(reservation)
+
+        # Guardar los pre-ordenes en la tabla intermedia
+        if preordered_dishes:
+            from modules.menu.infrastructure.pre_order_item_db_model import PreOrderItemDB
+            for dish_id in preordered_dishes:
+                pre_order_item = PreOrderItemDB(
+                    menu_item_id=dish_id,
+                    reservation_id=saved.uuid,
+                    quantity=1,  # Puedes ajustar la lógica de cantidad si tu DTO la soporta
+                    special_instructions=None
+                )
+                # Asume que tienes un método para guardar el pre_order_item
+                self.menu_repo.save_pre_order_item(pre_order_item)
+
         response_dto_data = saved.model_dump()
-        response_dto_data["preordered_dishes"] = dto.preordered_dishes
+        response_dto_data["preordered_dishes"] = preordered_dishes or []
         if not restaurant: # Defensive check
             raise HTTPException(status_code=500, detail="Restaurant information missing after initial check.")
         response_dto_data["restaurant_name"] = restaurant.name
@@ -102,18 +118,43 @@ class ReservationService:
 
     def get_reservations_by_user(self, user_id: UUID) -> List[ReservationResponseDto]:
         reservations = self.reservation_repo.get_by_user(user_id)
-        return [ReservationResponseDto(**r.model_dump()) for r in reservations]
+        result = []
+        for r in reservations:
+            data = r.model_dump()
+            table = self.table_repo.get_by_id(r.table_id)
+            restaurant = self.restaurant_repo.get_by_id(table.restaurant_id) if table else None
+            data["restaurant_name"] = restaurant.name if restaurant else None
+            result.append(ReservationResponseDto(**data))
+        return result
 
     def get_reservation_by_id(self, reservation_id: UUID) -> ReservationResponseDto:
         reservation = self.reservation_repo.get_by_id(reservation_id)
         if not reservation:
             raise HTTPException(status_code=404, detail="Reservation not found.")
-        return ReservationResponseDto(**reservation.model_dump())
+        data = reservation.model_dump()
+        table = self.table_repo.get_by_id(reservation.table_id)
+        restaurant = self.restaurant_repo.get_by_id(table.restaurant_id) if table else None
+        data["restaurant_name"] = restaurant.name if restaurant else None
+        return ReservationResponseDto(**data)
 
     def get_all_by_restaurant(self, restaurant_id: UUID) -> List[ReservationResponseDto]:
         reservations = self.reservation_repo.get_all_by_restaurant(restaurant_id)
-        return [ReservationResponseDto(**r.model_dump()) for r in reservations]
+        result = []
+        for r in reservations:
+            data = r.model_dump()
+            table = self.table_repo.get_by_id(r.table_id)
+            restaurant = self.restaurant_repo.get_by_id(table.restaurant_id) if table else None
+            data["restaurant_name"] = restaurant.name if restaurant else None
+            result.append(ReservationResponseDto(**data))
+        return result
 
     def get_by_date_range(self, start: datetime, end: datetime) -> List[ReservationResponseDto]:
         reservations = self.reservation_repo.get_by_date_range(start, end)
-        return [ReservationResponseDto(**r.model_dump()) for r in reservations]
+        result = []
+        for r in reservations:
+            data = r.model_dump()
+            table = self.table_repo.get_by_id(r.table_id)
+            restaurant = self.restaurant_repo.get_by_id(table.restaurant_id) if table else None
+            data["restaurant_name"] = restaurant.name if restaurant else None
+            result.append(ReservationResponseDto(**data))
+        return result

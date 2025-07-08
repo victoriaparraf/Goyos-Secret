@@ -10,3 +10,4 @@ class MenuItem(BaseModel):
     price: float
     available_stock: int
     image_url: Optional[str]
+    restaurant_id: UUID

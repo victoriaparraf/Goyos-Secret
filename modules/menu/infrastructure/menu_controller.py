@@ -64,15 +64,27 @@ async def create_pre_order_items(
     }
 
 # Caso de uso: Crear menu item
+from modules.menu.application.dtos.menu_item_dto import MenuItemRegisterDto
+from modules.menu.application.menu_services import MenuServices
+
 @router.post("/menu-item")
 async def create_menu_item(
-    menu_item: MenuItem,
-    menu_repo: MenuRepositoryInterface = Depends(get_menu_repository),
+    menu_item: MenuItemRegisterDto,
+    db: Session = Depends(get_db),
     current_user = Security(get_current_user, scopes=["admin:menu"])
 ):
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Only admins can create menu items.")
-    created_menu_item = menu_repo.create_menu_item(menu_item)
+    menu_services = MenuServices(MenuRepository(db))
+    created_menu_item = menu_services.create_menu_item(
+        name=menu_item.name,
+        description=menu_item.description,
+        category=menu_item.category,
+        price=menu_item.price,
+        available_stock=menu_item.available_stock,
+        restaurant_id=menu_item.restaurant_id,
+        image_url=menu_item.image_url
+    )
     return {
         "message": "Menu item created successfully", 
         "menu_item": created_menu_item

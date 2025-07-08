@@ -2,6 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from uuid import UUID, uuid4
 from modules.menu.domain.menu_item import MenuItem
 from typing import Optional
+from modules.menu.infrastructure.pre_order_item_db_model import PreOrderItemDB
 
 class MenuItemDB(SQLModel, MenuItem, table=True):
     __tablename__ = "menu_items"
@@ -12,6 +13,7 @@ class MenuItemDB(SQLModel, MenuItem, table=True):
     category: str
     price: float
     available_stock: int
+    restaurant_id: UUID = Field(foreign_key="restaurantdbmodel.id", index=True)
     image_url: Optional[str]
 
     # Relación inversa con PreOrderItemDB
@@ -26,6 +28,7 @@ def to_domain(menu_item_db: MenuItemDB) -> MenuItem:
         category=menu_item_db.category,
         price=menu_item_db.price,
         available_stock=menu_item_db.available_stock,
+        restaurant_id=menu_item_db.restaurant_id,
         image_url=menu_item_db.image_url
     )
 
@@ -37,5 +40,6 @@ def to_db(menu_item: MenuItem) -> MenuItemDB:
         category=menu_item.category,
         price=menu_item.price,
         available_stock=menu_item.available_stock,
+        restaurant_id=menu_item.restaurant_id,
         image_url=menu_item.image_url
     )
