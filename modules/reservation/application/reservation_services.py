@@ -118,18 +118,43 @@ class ReservationService:
 
     def get_reservations_by_user(self, user_id: UUID) -> List[ReservationResponseDto]:
         reservations = self.reservation_repo.get_by_user(user_id)
-        return [ReservationResponseDto(**r.model_dump()) for r in reservations]
+        result = []
+        for r in reservations:
+            data = r.model_dump()
+            table = self.table_repo.get_by_id(r.table_id)
+            restaurant = self.restaurant_repo.get_by_id(table.restaurant_id) if table else None
+            data["restaurant_name"] = restaurant.name if restaurant else None
+            result.append(ReservationResponseDto(**data))
+        return result
 
     def get_reservation_by_id(self, reservation_id: UUID) -> ReservationResponseDto:
         reservation = self.reservation_repo.get_by_id(reservation_id)
         if not reservation:
             raise HTTPException(status_code=404, detail="Reservation not found.")
-        return ReservationResponseDto(**reservation.model_dump())
+        data = reservation.model_dump()
+        table = self.table_repo.get_by_id(reservation.table_id)
+        restaurant = self.restaurant_repo.get_by_id(table.restaurant_id) if table else None
+        data["restaurant_name"] = restaurant.name if restaurant else None
+        return ReservationResponseDto(**data)
 
     def get_all_by_restaurant(self, restaurant_id: UUID) -> List[ReservationResponseDto]:
         reservations = self.reservation_repo.get_all_by_restaurant(restaurant_id)
-        return [ReservationResponseDto(**r.model_dump()) for r in reservations]
+        result = []
+        for r in reservations:
+            data = r.model_dump()
+            table = self.table_repo.get_by_id(r.table_id)
+            restaurant = self.restaurant_repo.get_by_id(table.restaurant_id) if table else None
+            data["restaurant_name"] = restaurant.name if restaurant else None
+            result.append(ReservationResponseDto(**data))
+        return result
 
     def get_by_date_range(self, start: datetime, end: datetime) -> List[ReservationResponseDto]:
         reservations = self.reservation_repo.get_by_date_range(start, end)
-        return [ReservationResponseDto(**r.model_dump()) for r in reservations]
+        result = []
+        for r in reservations:
+            data = r.model_dump()
+            table = self.table_repo.get_by_id(r.table_id)
+            restaurant = self.restaurant_repo.get_by_id(table.restaurant_id) if table else None
+            data["restaurant_name"] = restaurant.name if restaurant else None
+            result.append(ReservationResponseDto(**data))
+        return result

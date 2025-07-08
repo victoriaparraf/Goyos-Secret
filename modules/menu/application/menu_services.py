@@ -36,10 +36,12 @@ class MenuServices:
         if not name or not description or not category or price is None or available_stock is None or not restaurant_id:
             raise ValueError("All fields except image_url are required")
 
-        existing_item = self.menu_repo.get_menu_item_by_name(name)
-        if existing_item:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=409, detail="Menu item with this name already exists.")
+        # El nombre debe ser único dentro del mismo restaurante
+        menu_items = self.menu_repo.get_all_by_restaurant(restaurant_id)
+        for item in menu_items:
+            if item.name.lower() == name.lower():
+                from fastapi import HTTPException
+                raise HTTPException(status_code=409, detail="Menu item with this name already exists in this restaurant.")
 
         menu_item = MenuItem(
             id=uuid4(),
