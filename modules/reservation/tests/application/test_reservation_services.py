@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock
 from uuid import uuid4
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from fastapi import HTTPException
 
 from modules.reservation.application.reservation_services import ReservationService
@@ -60,7 +60,7 @@ def sample_user_id():
 # Test de Solapamiento
 def test_create_reservation_overlapping_table_rejected(reservation_service, mock_reservation_repo, mock_table_repo, sample_table, sample_user_id):
     # Arrange
-    start_time = datetime.utcnow() + timedelta(hours=1)
+    start_time = datetime.now(UTC) + timedelta(hours=1)
     end_time = start_time + timedelta(hours=1)
 
     dto = ReservationCreateDto(
@@ -96,7 +96,7 @@ def test_create_reservation_overlapping_table_rejected(reservation_service, mock
 # Test de Pre-orden Inválido
 def test_create_reservation_invalid_preordered_dish_rejected(reservation_service, mock_reservation_repo, mock_table_repo, mock_menu_repo, sample_table, sample_user_id):
     # Arrange
-    start_time = datetime.utcnow() + timedelta(hours=1)
+    start_time = datetime.now(UTC) + timedelta(hours=1)
     end_time = start_time + timedelta(hours=1)
     invalid_dish_id = uuid4()
 
@@ -124,7 +124,7 @@ def test_create_reservation_invalid_preordered_dish_rejected(reservation_service
 
 def test_create_reservation_too_many_preordered_dishes_rejected(reservation_service, mock_reservation_repo, mock_table_repo, mock_menu_repo, sample_table, sample_user_id):
     # Arrange
-    start_time = datetime.utcnow() + timedelta(hours=1)
+    start_time = datetime.now(UTC) + timedelta(hours=1)
     end_time = start_time + timedelta(hours=1)
     
     # Create more than 5 dish IDs
@@ -163,7 +163,7 @@ def test_create_reservation_too_many_preordered_dishes_rejected(reservation_serv
 
 def test_create_reservation_success_with_preordered_dishes(reservation_service, mock_reservation_repo, mock_table_repo, mock_menu_repo, mock_restaurant_repo, sample_table, sample_user_id, sample_restaurant):
     # Arrange
-    start_time = datetime.utcnow() + timedelta(hours=1)
+    start_time = datetime.now(UTC) + timedelta(hours=1)
     end_time = start_time + timedelta(hours=1)
     
     dish_id_1 = uuid4()
