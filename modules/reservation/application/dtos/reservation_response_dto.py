@@ -14,3 +14,4 @@ class ReservationResponseDto(BaseModel):
     special_instructions: Optional[str] = None
     status: ReservationStatus
     preordered_dishes: Optional[List[UUID]] = []
+    restaurant_name: str

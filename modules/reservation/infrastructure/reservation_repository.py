@@ -81,3 +81,18 @@ class ReservationRepository(IReservationRepository):
         )
         results = self.db.exec(stmt).all()
         return [to_domain(r) for r in results]
+
+    def get_all(self) -> List[Reservation]:
+        stmt = select(ReservationDBModel)
+        results = self.db.exec(stmt).all()
+        return [to_domain(r) for r in results]
+
+    def get_active_by_restaurant_and_time_range(self, restaurant_id: UUID, start_time: datetime, end_time: datetime) -> List[Reservation]:
+        stmt = select(ReservationDBModel).join_from(ReservationDBModel, TableDBModel).where(
+            (TableDBModel.restaurant_id == restaurant_id) &
+            (ReservationDBModel.start_time < end_time) &
+            (ReservationDBModel.end_time > start_time) &
+            (ReservationDBModel.status.in_(["PENDING", "CONFIRMED"]))
+        )
+        results = self.db.exec(stmt).all()
+        return [to_domain(r) for r in results]

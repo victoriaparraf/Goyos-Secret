@@ -13,6 +13,9 @@ class TableService:
         self.table_repo = table_repo
 
     def create_table(self, dto: CreateTableDTO) -> TableResponseDto:
+        if dto.capacity == 1 or dto.capacity == 13:
+            raise HTTPException(status_code=400, detail="Table capacity cannot be 1 or 13.")
+
         # Validar duplicado de número de mesa en el restaurante
         existing = self.table_repo.get_by_restaurant_and_table_number(dto.restaurant_id, dto.number)
         if existing:

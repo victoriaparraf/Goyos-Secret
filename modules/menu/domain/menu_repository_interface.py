@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
+from uuid import UUID
 from modules.menu.domain.menu_item import MenuItem
 from modules.menu.domain.pre_order_item import PreOrderItem
 
@@ -11,8 +12,18 @@ class MenuRepositoryInterface(ABC):
         pass
 
     @abstractmethod
+    def get_menu_item_by_name(self, name: str) -> Optional[MenuItem]:
+        """Obtiene un menu item por su nombre"""
+        pass
+
+    @abstractmethod
     def get_available_menu_item(self) -> List[MenuItem]:
         """Obtiene todos los menu items disponibles"""
+        pass
+
+    @abstractmethod
+    def get_all_by_restaurant(self, restaurant_id: UUID) -> List[MenuItem]:
+        """Obtiene todos los menu items de un restaurante"""
         pass
 
     @abstractmethod

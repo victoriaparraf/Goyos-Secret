@@ -6,6 +6,7 @@ from modules.menu.infrastructure.menu_controller import router as menu_router
 from modules.restaurant.infrastructure.restaurant_controller import router as restaurant_router
 from modules.reservation.infrastructure.reservation_controller import router as reservation_router
 from modules.restaurant.infrastructure.table_controller import router as table_router
+from modules.dashboard.infrastructure.dashboard_controller import router as dashboard_router
 
 SQLModel.metadata.create_all(engine)
 
@@ -31,3 +32,4 @@ app.include_router(menu_router, prefix="/menu", tags=["Menu"])
 app.include_router(restaurant_router, prefix="/restaurants", tags=["Restaurant"])
 app.include_router(table_router, prefix="/tables", tags=["Tables"])
 app.include_router(reservation_router, prefix="/reservations", tags=["Reservation"])
+app.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])

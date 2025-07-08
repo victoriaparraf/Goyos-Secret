@@ -8,18 +8,23 @@ from modules.restaurant.domain.table_repository_interface import ITableRepositor
 from modules.menu.domain.menu_repository_interface import MenuRepositoryInterface
 from modules.reservation.application.dtos.reservation_create_dto import ReservationCreateDto
 from modules.reservation.application.dtos.reservation_response_dto import ReservationResponseDto
+from modules.notifications.notifications import notificacion
+from modules.restaurant.domain.restaurant_repository_interface import IRestaurantRepository
 
 class ReservationService:
     def __init__(
         self,
         reservation_repo: IReservationRepository,
         table_repo: ITableRepository,
-        menu_repo: MenuRepositoryInterface
+        menu_repo: MenuRepositoryInterface,
+        restaurant_repo: IRestaurantRepository
     ):
         self.reservation_repo = reservation_repo
         self.table_repo = table_repo
         self.menu_repo = menu_repo
+        self.restaurant_repo = restaurant_repo
 
+    @notificacion("Reserva confirmada para {fecha} en {restaurante}.", data_extractor=lambda r: {"fecha": r.start_time.strftime("%Y-%m-%d %H:%M"), "restaurante": r.restaurant_name})
     def create_reservation(self, user_id: UUID, dto: ReservationCreateDto) -> ReservationResponseDto:
         # Validar duración
         duration = dto.end_time - dto.start_time
@@ -30,6 +35,10 @@ class ReservationService:
         table = self.table_repo.get_by_id(dto.table_id)
         if not table:
             raise HTTPException(status_code=404, detail="Table not found.")
+        
+        restaurant = self.restaurant_repo.get_by_id(table.restaurant_id)
+        if not restaurant:
+            raise HTTPException(status_code=404, detail="Restaurant not found for this table.")
 
         # Validar que no haya solapamiento por cliente
         overlapping_user = self.reservation_repo.get_active_by_user_and_time(user_id, dto.start_time, dto.end_time)
@@ -43,13 +52,16 @@ class ReservationService:
 
         # Validar platos (si existen)
         if dto.preordered_dishes:
+            if len(dto.preordered_dishes) > 5:
+                raise HTTPException(status_code=400, detail="Cannot pre-order more than 5 dishes.")
             menu_items = self.menu_repo.get_all_by_restaurant(table.restaurant_id)
-            menu_ids = {dish.uuid for dish in menu_items if dish.available}
+            menu_ids = {dish.id for dish in menu_items if dish.available_stock > 0}
             for dish_id in dto.preordered_dishes:
                 if dish_id not in menu_ids:
                     raise HTTPException(status_code=400, detail=f"Dish {dish_id} is not available for this restaurant.")
-            if len(dto.preordered_dishes) > 5:
-                raise HTTPException(status_code=400, detail="Cannot pre-order more than 5 dishes.")
+            # Notificación de pre-orden
+            from modules.notifications.notifications import registrar_preorden
+            registrar_preorden(n_platos=len(dto.preordered_dishes))
 
         reservation = Reservation(
             uuid=uuid4(),
@@ -63,8 +75,14 @@ class ReservationService:
         )
 
         saved = self.reservation_repo.save(reservation)
-        return ReservationResponseDto(**saved.model_dump(), preordered_dishes=dto.preordered_dishes)
+        response_dto_data = saved.model_dump()
+        response_dto_data["preordered_dishes"] = dto.preordered_dishes
+        if not restaurant: # Defensive check
+            raise HTTPException(status_code=500, detail="Restaurant information missing after initial check.")
+        response_dto_data["restaurant_name"] = restaurant.name
+        return ReservationResponseDto(**response_dto_data)
 
+    @notificacion("Reserva cancelada (ID: {id_reserva}).", data_extractor=lambda r: {"id_reserva": r.uuid})
     def cancel_reservation(self, reservation_id: UUID, current_user_id: UUID, is_admin: bool = False) -> None:
         reservation = self.reservation_repo.get_by_id(reservation_id)
         if not reservation:
@@ -80,6 +98,7 @@ class ReservationService:
 
         reservation.status = ReservationStatus.CANCELLED
         self.reservation_repo.update(reservation)
+        return reservation
 
     def get_reservations_by_user(self, user_id: UUID) -> List[ReservationResponseDto]:
         reservations = self.reservation_repo.get_by_user(user_id)
