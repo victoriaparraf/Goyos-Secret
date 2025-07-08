@@ -1,4 +1,4 @@
-from sqlmodel import Column, SQLModel, Field
+from sqlmodel import Column, SQLModel, Field, Relationship
 from uuid import UUID, uuid4
 from datetime import datetime
 from enum import Enum
@@ -19,7 +19,7 @@ class ReservationDBModel(SQLModel, Reservation, table=True):
     special_instructions: Optional[str] = None
     status: ReservationStatus = Field(default=ReservationStatus.PENDING)
     # Relación muchos a muchos con PreOrderItemDB
-    pre_orders: list["PreOrderItemDB"] = Field(default_factory=list, sa_relationship_kwargs={"back_populates": "reservation"})
+    pre_orders: List["PreOrderItemDB"] = Relationship(back_populates="reservation")
 
 def to_domain(res: ReservationDBModel) -> Reservation:
     return Reservation(
