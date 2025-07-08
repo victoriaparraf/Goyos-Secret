@@ -6,6 +6,12 @@ from modules.menu.domain.pre_order_item import PreOrderItem
 
 
 class MenuRepositoryInterface(ABC):
+    
+    @abstractmethod
+    def get_all_by_restaurant(self, restaurant_id: UUID) -> List[MenuItem]:
+        """Obtiene todos los menu items de un restaurante"""
+        pass
+    
     @abstractmethod
     def get_menu_item_by_category(self, category: str) -> Optional[MenuItem]:
         """Obtiene un menu item por su categoria"""
@@ -19,11 +25,6 @@ class MenuRepositoryInterface(ABC):
     @abstractmethod
     def get_available_menu_item(self) -> List[MenuItem]:
         """Obtiene todos los menu items disponibles"""
-        pass
-
-    @abstractmethod
-    def get_all_by_restaurant(self, restaurant_id: UUID) -> List[MenuItem]:
-        """Obtiene todos los menu items de un restaurante"""
         pass
 
     @abstractmethod
