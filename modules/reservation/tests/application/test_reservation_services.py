@@ -145,11 +145,11 @@ def test_create_reservation_too_many_preordered_dishes_rejected(reservation_serv
     
     # Mock some available dishes, but not enough to cover the too_many_dishes list
     mock_menu_repo.get_all_by_restaurant.return_value = [
-        MenuItem(id=too_many_dishes[0], name="Dish 1", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/1"),
-        MenuItem(id=too_many_dishes[1], name="Dish 2", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/2"),
-        MenuItem(id=too_many_dishes[2], name="Dish 3", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/3"),
-        MenuItem(id=too_many_dishes[3], name="Dish 4", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/4"),
-        MenuItem(id=too_many_dishes[4], name="Dish 5", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/5"),
+        MenuItem(id=too_many_dishes[0], name="Dish 1", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/1", restaurant_id=sample_table.restaurant_id),
+        MenuItem(id=too_many_dishes[1], name="Dish 2", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/2", restaurant_id=sample_table.restaurant_id),
+        MenuItem(id=too_many_dishes[2], name="Dish 3", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/3", restaurant_id=sample_table.restaurant_id),
+        MenuItem(id=too_many_dishes[3], name="Dish 4", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/4", restaurant_id=sample_table.restaurant_id),
+        MenuItem(id=too_many_dishes[4], name="Dish 5", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/5", restaurant_id=sample_table.restaurant_id),
     ]
 
     # Act & Assert
@@ -184,8 +184,8 @@ def test_create_reservation_success_with_preordered_dishes(reservation_service, 
     mock_restaurant_repo.get_by_id.return_value = sample_restaurant
     
     mock_menu_repo.get_all_by_restaurant.return_value = [
-        MenuItem(id=dish_id_1, name="Dish 1", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/1"),
-        MenuItem(id=dish_id_2, name="Dish 2", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/2"),
+        MenuItem(id=dish_id_1, name="Dish 1", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/1", restaurant_id=sample_table.restaurant_id),   
+        MenuItem(id=dish_id_2, name="Dish 2", description="", category="", price=10.0, available_stock=10, image_url="http://example.com/2", restaurant_id=sample_table.restaurant_id),
     ]
 
     mock_reservation_repo.save.return_value = ReservationResponseDto(
@@ -200,6 +200,7 @@ def test_create_reservation_success_with_preordered_dishes(reservation_service, 
         preordered_dishes=dto.preordered_dishes,
         restaurant_name=sample_restaurant.name
     )
+    mock_menu_repo.save_pre_order_item.return_value = None # Mock the save operation
 
     # Act
     response_dto = reservation_service.create_reservation(sample_user_id, dto)
@@ -209,3 +210,4 @@ def test_create_reservation_success_with_preordered_dishes(reservation_service, 
     assert response_dto.preordered_dishes == dto.preordered_dishes
     mock_reservation_repo.save.assert_called_once()
     mock_menu_repo.get_all_by_restaurant.assert_called_once_with(sample_table.restaurant_id)
+    assert mock_menu_repo.save_pre_order_item.call_count == len(dto.preordered_dishes)

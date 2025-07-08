@@ -3,10 +3,14 @@ import pytest
 from unittest.mock import Mock
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-from main import app
-from modules.auth.infrastructure.auth_controller import get_auth_services, get_user_services
+from fastapi import FastAPI
+from modules.auth.infrastructure.auth_controller import router as auth_router, get_auth_services, get_user_services
 from modules.auth.application.auth_services import AuthServices
 from modules.auth.application.user_services import UserServices
+
+
+app = FastAPI()
+app.include_router(auth_router, prefix="/auth")
 
 @pytest.fixture
 def mock_auth_services():
