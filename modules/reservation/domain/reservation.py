@@ -18,5 +18,5 @@ class Reservation(BaseModel):
     end_time: datetime
     num_people: int
     special_instructions: Optional[str]
-    preordered_dishes: Optional[List[UUID]] = []
+    
     status: ReservationStatus
